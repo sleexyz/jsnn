@@ -86,7 +86,6 @@ const train1: { steps: number } => Data => Model => Model = (() => {
     for (let i = 0; i < data.length; i += 1) {
       const { input, expectedOutput } = data[i];
       const output = makePerceptron(model)(input);
-
       acc += Math.pow(output - expectedOutput, 2); // squared error
     }
     return acc / data.length;
