@@ -19,16 +19,17 @@ const makePerceptron = ({ weights, bias }: Model) => (input: Array<number>): num
 };
 
 const generatePerceptronModel = () => {
-  const weights = [ Math.random(), Math.random() ];
-  const bias = Math.random();
+  const randomBound = () => 1 - (Math.random() * 2)
+  const weights = [ randomBound(), randomBound() ];
+  const bias = 0;
   return { weights, bias };
 };
 
 
 const numericalDerivative = (f: number => number) => (x0: number): number => {
   const delta = 0.0001;
-  // console.log(f(x0 + delta), f(x0));
-  return (f(x0 + delta) - f(x0))/delta
+  const nd = (f(x0 + delta) - f(x0)) / delta
+  return nd
 };
 
 const setW0 = (w0, model): Model => ({
@@ -52,11 +53,11 @@ const setB = (b, model): Model => ({
   bias: b,
 });
 
-const mse = (a, b) => ((a - b) * (a - b))/2;
+const mse = (a, b) => Math.pow((a - b), 2) / 2;
 
 const getCost = (input: Array<number>, expectedOutput: number) => (model: Model): number => {
   const output = makePerceptron(model)(input);
-  return mse(output , expectedOutput);
+  return mse(output, expectedOutput);
 }
 
 
@@ -68,16 +69,17 @@ const step = (input: Array<number>, expectedOutput: number) => (model: Model): {
   const dw1 = numericalDerivative((w1) => _getCost(setW1(w1, model)))(model.weights[1]);
   const db = numericalDerivative((b) => _getCost(setB(b, model)))(model.bias);
 
-  const gamma = 0.001;
+  const learningRate = 1;
 
   const nextModel = {
     weights: [
-      model.weights[0] - dw0 * gamma,
-      model.weights[1] - dw1 * gamma,
+      model.weights[0] - (dw0 * learningRate),
+      model.weights[1] - (dw1 * learningRate),
     ],
-    bias: model.bias - db * gamma,
+    bias: model.bias - (db * learningRate),
   };
 
+  console.log(cost)
   return {
     cost,
     nextModel,
