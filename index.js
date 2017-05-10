@@ -33,7 +33,7 @@ const numericalDerivative = (f: number => number) => (x0: number): number => {
 };
 
 
-// SGD with batch size of 1
+// Stochastic Gradient Descent with batch size of 1
 const train0: Data => Model => Model = (() => {
   const getCost = (input: Array<number>, expectedOutput: number) => (model: Model): number => {
     const output = makePerceptron(model)(input);
@@ -48,7 +48,7 @@ const train0: Data => Model => Model = (() => {
     const dw1 = numericalDerivative((w1) => _getCost(setW1(w1, model)))(model.weights[1]);
     const db = numericalDerivative((b) => _getCost(setB(b, model)))(model.bias);
 
-    const learningRate = 0.1;
+    const learningRate = 0.5;
 
     const nextModel = {
       weights: [
@@ -77,16 +77,17 @@ const train0: Data => Model => Model = (() => {
   return train;
 })();
 
-// GD with batch size of 1
+// Gradient descent
 const train1: { steps: number } => Data => Model => Model = (() => {
 
-  // mse
-  const getCost = (data) => (model: Model): number => {
+  // mean squared error
+  const getCost = (data: Data) => (model: Model): number => {
+    const perceptron = makePerceptron(model);
     let acc = 0;
     for (let i = 0; i < data.length; i += 1) {
       const { input, expectedOutput } = data[i];
-      const output = makePerceptron(model)(input);
-      acc += Math.pow(output - expectedOutput, 2); // squared error
+      const output = perceptron(input);
+      acc += Math.pow(output - expectedOutput, 2);
     }
     return acc / data.length;
   };
@@ -99,7 +100,7 @@ const train1: { steps: number } => Data => Model => Model = (() => {
     const dw1 = numericalDerivative((w1) => _getCost(setW1(w1, model)))(model.weights[1]);
     const db = numericalDerivative((b) => _getCost(setB(b, model)))(model.bias);
 
-    const learningRate = 0.1;
+    const learningRate = 0.5;
 
     const nextModel = {
       weights: [
@@ -128,9 +129,73 @@ const train1: { steps: number } => Data => Model => Model = (() => {
   return train;
 })();
 
+const sampleRandomly = <A>(n: number, array: Array<A>): Array<A> => {
+  const ret = [];
+  for (let i = 0; i < n; i += 1) {
+    const randIndex = Math.floor(Math.random() * array.length);
+    ret.push(array[randIndex]);
+  }
+  return ret;
+};
+
+// Stochastic Gradient descent
+const train2: { steps: number, batchSize: number } => Data => Model => Model = (() => {
+
+  // mean squared error
+  const getCost = (data: Data) => (model: Model): number => {
+    const perceptron = makePerceptron(model);
+    let acc = 0;
+    for (let i = 0; i < data.length; i += 1) {
+      const { input, expectedOutput } = data[i];
+      const output = perceptron(input);
+      acc += Math.pow(output - expectedOutput, 2);
+    }
+    return acc / data.length;
+  };
+
+  const step = (data: Data) => (model: Model): { cost: number, nextModel: Model } => {
+    const _getCost = getCost(data);
+    const cost = _getCost(model); // FIXME: optimize later
+
+    const dw0 = numericalDerivative((w0) => _getCost(setW0(w0, model)))(model.weights[0]);
+    const dw1 = numericalDerivative((w1) => _getCost(setW1(w1, model)))(model.weights[1]);
+    const db = numericalDerivative((b) => _getCost(setB(b, model)))(model.bias);
+
+    const learningRate = 0.5;
+
+    const nextModel = {
+      weights: [
+        model.weights[0] - (dw0 * learningRate),
+        model.weights[1] - (dw1 * learningRate),
+      ],
+      bias: model.bias - (db * learningRate),
+    };
+
+    return {
+      cost,
+      nextModel,
+    };
+  };
+
+  const train = (parameters: { steps: number, batchSize: number }) => (data: Data) => (model: Model): Model=> {
+    const { steps, batchSize } = parameters;
+    let m = model;
+    for (let i = 0; i < steps; i += 1 ) {
+      const sample = sampleRandomly(batchSize, data);
+      const { cost, nextModel } = step(sample)(m);
+      m = nextModel;
+    }
+    return m
+  };
+
+  return train;
+})();
+
+
 module.exports = {
   makePerceptron,
   generatePerceptronModel,
   train0,
   train1,
+  train2,
 };
