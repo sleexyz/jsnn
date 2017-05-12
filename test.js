@@ -2,8 +2,6 @@
 const {
   makePerceptron,
   generatePerceptronModel,
-  train0,
-  train1,
   train2,
 } = require('./index.js');
 const { expect } = require('chai');
@@ -28,39 +26,20 @@ const makeData = (length: number) => Array(length).fill('').map((_, i) => {
 });
 
 describe("makePerceptron", function () {
-  describe("and", function () {
+  describe("nand", function () {
     it("works", function () {
       testNand(idealPerceptron);
     });
   });
 });
 
-describe("training methods", function () {
-  describe("train0 - Stochastic gradient descent with batch size of 1", function () {
-    it("works", function () {
-      const data = makeData(10000);
-      const model = train0(data)(generatePerceptronModel());
-      testNand(makePerceptron(model));
-    });
-  });
-
-  describe("train1 - Gradient descent", function () {
-    it("works", function () {
-      const data = makeData(100);
-      const model = train1({
-        steps: 10000,
-      })(data)(generatePerceptronModel());
-      testNand(makePerceptron(model));
-    });
-  });
-
-
-  describe("train2 - Stochastic Gradient descent with batch size of 100", function () {
+describe("learning nand", function () {
+  describe("train2 - Stochastic Gradient descent with batch size of 1", function () {
     it("works", function () {
       const data = makeData(100000);
       const model = train2({
         steps: 10000,
-        batchSize: 100,
+        batchSize: 10,
       })(data)(generatePerceptronModel());
       testNand(makePerceptron(model));
     });
