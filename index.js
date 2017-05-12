@@ -49,7 +49,7 @@ const generatePerceptronModel = () => {
 const numericalDerivative = (f: number => number) => (x0: number): number => {
   const delta = 0.0001;
   const nd = (f(x0 + delta) - f(x0)) / delta
-  return nd
+  return nd;
 };
 
 
@@ -62,70 +62,63 @@ const sampleRandomly = <A>(n: number, array: Array<A>): Array<A> => {
   return ret;
 };
 
-// Stochastic Gradient descent
-const train2: { steps: number, batchSize: number } => Data => Model => Model = (() => {
+// half of mean squared error
+const getCost = (data: Data) => (model: Model): number => {
+  const perceptron = makePerceptron(model);
+  let acc = 0;
+  for (let i = 0; i < data.length; i += 1) {
+    const { input, expectedOutput } = data[i];
+    const output = perceptron(input);
+    acc += Math.pow(output - expectedOutput, 2);
+  }
+  return acc / (data.length * 2);
+};
 
-  // half mean squared error
-  const getCost = (data: Data) => (model: Model): number => {
-    const perceptron = makePerceptron(model);
-    let acc = 0;
-    for (let i = 0; i < data.length; i += 1) {
-      const { input, expectedOutput } = data[i];
-      const output = perceptron(input);
-      acc += Math.pow(output - expectedOutput, 2);
-    }
-    return acc / (data.length * 2);
+const getGradientOfCost = (data: Data) => (model: Model) => {
+  const perceptron = makePerceptron(model);
+  let dc_dw0 = 0;
+  let dc_dw1 = 0;
+  let dc_db = 0;
+  for (let i = 0; i < data.length; i +=1) {
+    const { input, expectedOutput } = data[i];
+    const { dp_dw0, dp_dw1, dp_db } = gradPerceptron(model, input);
+    const diff = perceptron(input) - expectedOutput;
+    dc_dw0 += diff * dp_dw0;
+    dc_dw1 += diff * dp_dw1;
+    dc_db += diff * dp_db;
+  }
+  dc_dw0 = dc_dw0 / data.length;
+  dc_dw1 = dc_dw1 / data.length;
+  dc_db = dc_db / data.length;
+  return { dc_dw0, dc_dw1, dc_db };
+};
+
+const step = (data: Data) => (model: Model): Model => {
+  const { dc_dw0, dc_dw1, dc_db } = getGradientOfCost(data)(model);
+  const learningRate = 0.5;
+  const nextModel = {
+    weights: [
+      model.weights[0] - (dc_dw0 * learningRate),
+      model.weights[1] - (dc_dw1 * learningRate),
+    ],
+    bias: model.bias - (dc_db * learningRate),
   };
+  return nextModel;
+};
 
-  const getGradientOfCost = (data: Data) => (model: Model) => {
-    const perceptron = makePerceptron(model);
-    let dc_dw0 = 0;
-    let dc_dw1 = 0;
-    let dc_db = 0;
-    for (let i = 0; i < data.length; i +=1) {
-      const { input, expectedOutput } = data[i];
-      const { dp_dw0, dp_dw1, dp_db } = gradPerceptron(model, input);
-      const diff = perceptron(input) - expectedOutput;
-      dc_dw0 += diff * dp_dw0;
-      dc_dw1 += diff * dp_dw1;
-      dc_db += diff * dp_db;
-    }
-    dc_dw0 = dc_dw0 / data.length;
-    dc_dw1 = dc_dw1 / data.length;
-    dc_db = dc_db / data.length;
-    return { dc_dw0, dc_dw1, dc_db };
-  };
-
-  const step = (data: Data) => (model: Model): Model => {
-    const { dc_dw0, dc_dw1, dc_db } = getGradientOfCost(data)(model);
-    const learningRate = 0.5;
-    const nextModel = {
-      weights: [
-        model.weights[0] - (dc_dw0 * learningRate),
-        model.weights[1] - (dc_dw1 * learningRate),
-      ],
-      bias: model.bias - (dc_db * learningRate),
-    };
-    return nextModel;
-  };
-
-  const train = (parameters: { steps: number, batchSize: number }) => (data: Data) => (model: Model): Model=> {
-    const { steps, batchSize } = parameters;
-    let m = model;
-    for (let i = 0; i < steps; i += 1 ) {
-      const sample = sampleRandomly(batchSize, data);
-      const nextModel = step(sample)(m);
-      m = nextModel;
-    }
-    return m
-  };
-
-  return train;
-})();
-
+const train = (parameters: { steps: number, batchSize: number }) => (data: Data) => (model: Model): Model=> {
+  const { steps, batchSize } = parameters;
+  let m = model;
+  for (let i = 0; i < steps; i += 1 ) {
+    const sample = sampleRandomly(batchSize, data);
+    const nextModel = step(sample)(m);
+    m = nextModel;
+  }
+  return m;
+};
 
 module.exports = {
   makePerceptron,
   generatePerceptronModel,
-  train2,
+  train,
 };

@@ -2,7 +2,7 @@
 const {
   makePerceptron,
   generatePerceptronModel,
-  train2,
+  train,
 } = require('./index.js');
 const { expect } = require('chai');
 
@@ -34,10 +34,10 @@ describe("makePerceptron", function () {
 });
 
 describe("learning nand", function () {
-  describe("train2 - Stochastic Gradient descent with batch size of 1", function () {
+  describe("train - Stochastic Gradient descent with batch size of 1", function () {
     it("works", function () {
       const data = makeData(100000);
-      const model = train2({
+      const model = train({
         steps: 10000,
         batchSize: 10,
       })(data)(generatePerceptronModel());
