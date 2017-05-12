@@ -11,12 +11,37 @@ const setB = (b, model): Model => ({ weights: model.weights, bias: b });
 
 type Data = Array<{ input: Array<number>, expectedOutput: number}>;
 
-const makePerceptron = ({ weights, bias }: Model) => (input: Array<number>): number => {
+const sigmoid = (x) => 1 / (1 + Math.exp(-1 * x));
+const sigmoidPrime = (x) => {
+  const s = sigmoid(x);
+  return s * (1 - s);
+};
+
+const makeGrad = (model: Model, input: Array<number>) => {
+  const { weights, bias } = model;
+  return {
+    dP_dW0:(w0: number) => {
+      return sigmoidPrime(dotProduct([w0, weights[1]], input) + bias) * (input[0] * w0);
+    },
+    dP_dW1: (w1: number) => {
+      return sigmoidPrime(dotProduct([weights[0], w1], input) + bias) * (input[0] * w1);
+    },
+    dP_dB: (b: number) => {
+      return sigmoidPrime(dotProduct(weights, input) + bias);
+    },
+  };
+}
+
+const dotProduct = (x: Array<number>, y: Array<number>) => {
   let acc = 0;
-  for (let i = 0; i < weights.length; i += 1) {
-    acc += weights[i] * input[i];
+  for (let i = 0; i < x.length; i += 1) {
+    acc += x[i] * y[i];
   }
-  return 1 / (1 + Math.exp(-1 * (acc + bias)));
+  return acc;
+};
+
+const makePerceptron = ({ weights, bias }: Model) => (input: Array<number>): number => {
+  return sigmoid(dotProduct(weights, input) + bias);
 };
 
 const generatePerceptronModel = () => {
@@ -64,7 +89,7 @@ const train0: Data => Model => Model = (() => {
     };
   };
 
-  const train = (data: Data) => (model: Model): Model=> {
+  const train = (data: Data) => (model: Model): Model => {
     let m = model;
     for (let i = 0; i < data.length; i += 1 ) {
       const { input, expectedOutput } = data[i];
