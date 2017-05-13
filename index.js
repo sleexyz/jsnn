@@ -95,7 +95,7 @@ const getGradientOfCost = (data: Data) => (model: Model) => {
 
 const step = (data: Data) => (model: Model): Model => {
   const { dc_dw0, dc_dw1, dc_db } = getGradientOfCost(data)(model);
-  const learningRate = 0.5;
+  const learningRate = 1;
   const nextModel = {
     weights: [
       model.weights[0] - (dc_dw0 * learningRate),

@@ -9,5 +9,8 @@
     "chai": "^3.5.0",
     "flow-bin": "^0.45.0",
     "mocha": "^3.3.0"
+  },
+  "scripts": {
+    "test": "flow && mocha --compilers=js:babel-core/register"
   }
 }

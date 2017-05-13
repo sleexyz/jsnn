@@ -6,14 +6,21 @@ const {
 } = require('./index.js');
 const { expect } = require('chai');
 
-const idealPerceptron = makePerceptron({ weights: [-2, -2], bias: 3 });
+const idealPerceptron = (inputs) => Math.round(makePerceptron({ weights: [-2, -2], bias: 3 })(inputs));
 
-const testNand = (perceptron) => {
-  const margin = 0.1;
-  expect(perceptron([1, 0])).to.be.closeTo(0.7310585786300049, margin);
-  expect(perceptron([0, 1])).to.be.closeTo(0.7310585786300049, margin);
-  expect(perceptron([0, 0])).to.be.closeTo(0.9525741268224331, margin);
-  expect(perceptron([1, 1])).to.be.closeTo(0.2689414213699951, margin);
+const testNand = ({ margin, perceptron }) => {
+  const data = [
+    { input: [1, 0], expectedOutput: 1 },
+    { input: [0, 1], expectedOutput: 1 },
+    { input: [0, 0], expectedOutput: 1 },
+    { input: [1, 1], expectedOutput: 0 },
+  ];
+  for (let i = 0; i < data.length; i += 1) {
+    const { input, expectedOutput } = data[i];
+    const output = perceptron(input);
+    console.log({ input, output });
+    expect(output).to.be.closeTo(expectedOutput, margin);
+  }
 };
 
 const makeData = (length: number) => Array(length).fill('').map((_, i) => {
@@ -28,7 +35,10 @@ const makeData = (length: number) => Array(length).fill('').map((_, i) => {
 describe("makePerceptron", function () {
   describe("nand", function () {
     it("works", function () {
-      testNand(idealPerceptron);
+      testNand({
+        margin: 1e-43,
+        perceptron: makePerceptron({ weights: [-200, -200], bias: 300 }),
+      });
     });
   });
 });
@@ -36,12 +46,17 @@ describe("makePerceptron", function () {
 describe("learning nand", function () {
   describe("train - Stochastic Gradient descent with batch size of 1", function () {
     it("works", function () {
-      const data = makeData(100000);
+      this.timeout(10000);
+      const data = makeData(200000);
       const model = train({
-        steps: 10000,
-        batchSize: 10,
+        steps: 1000000,
+        batchSize: 5,
       })(data)(generatePerceptronModel());
-      testNand(makePerceptron(model));
+      console.log(model);
+      testNand({
+        margin: 1e-5,
+        perceptron: makePerceptron(model),
+      });
     });
   });
 });
