@@ -89,7 +89,7 @@ const getCost = (data: Data) => (model: Model): number => {
   return halfMeanSquaredError(expected, actual);
 };
 
-// Gradient wrt. model params
+// Gradient of cost wrt. model params
 //
 // We multiply the jacobian of the perceptron outputs wrt. the model params
 // with the gradient of the loss wrt. the perceptron outputs.
