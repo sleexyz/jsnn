@@ -1,24 +1,26 @@
 // @flow
 const {
-  makePerceptron,
-  generatePerceptronModel,
+  runPerceptron,
+  generateRandomPerceptron,
   train,
 } = require('./index.js');
 const { expect } = require('chai');
 
-const idealPerceptron = (inputs) => Math.round(makePerceptron({ weights: [-2, -2], bias: 3 })(inputs));
+const idealNand = (input: Array<number>) => {
+  const perceptron = { weights: [-2, -2], bias: 3 };
+  return Math.round(runPerceptron(perceptron, input));
+};
 
 const testNand = ({ margin, perceptron }) => {
-  const data = [
+  const testData = [
     { input: [1, 0], expectedOutput: 1 },
     { input: [0, 1], expectedOutput: 1 },
     { input: [0, 0], expectedOutput: 1 },
     { input: [1, 1], expectedOutput: 0 },
   ];
-  for (let i = 0; i < data.length; i += 1) {
-    const { input, expectedOutput } = data[i];
-    const output = perceptron(input);
-    console.log({ input, output });
+  for (let i = 0; i < testData.length; i += 1) {
+    const { input, expectedOutput } = testData[i];
+    const output = runPerceptron(perceptron, input);
     expect(output).to.be.closeTo(expectedOutput, margin);
   }
 };
@@ -28,34 +30,32 @@ const makeData = (length: number) => Array(length).fill('').map((_, i) => {
   const randomInput = [ randomBound(), randomBound() ];
   return {
     input: randomInput,
-    expectedOutput: idealPerceptron(randomInput),
+    expectedOutput: idealNand(randomInput),
   }
 });
 
-describe("makePerceptron", function () {
+describe("runPerceptron", function () {
   describe("nand", function () {
     it("works", function () {
       testNand({
         margin: 1e-43,
-        perceptron: makePerceptron({ weights: [-200, -200], bias: 300 }),
+        perceptron: { weights: [-200, -200], bias: 300 },
       });
     });
   });
 });
 
 describe("learning nand", function () {
+  this.timeout(10000);
   describe("train - Stochastic Gradient descent with batch size of 1", function () {
     it("works", function () {
-      this.timeout(10000);
-      const data = makeData(200000);
-      const model = train({
+      const perceptron = train({
         steps: 1000000,
         batchSize: 5,
-      })(data)(generatePerceptronModel());
-      console.log(model);
+      })(makeData(200000))(generateRandomPerceptron());
       testNand({
+        perceptron,
         margin: 1e-5,
-        perceptron: makePerceptron(model),
       });
     });
   });

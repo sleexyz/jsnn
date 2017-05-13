@@ -39,7 +39,11 @@ const makePerceptron = ({ weights, bias }: Model) => (input: Array<number>): num
   return sigmoid(dotProduct(weights, input) + bias);
 };
 
-const generatePerceptronModel = () => {
+const runPerceptron = ({ weights, bias }: Model, input: Array<number>):number => {
+  return sigmoid(dotProduct(weights, input) + bias);
+};
+
+const generateRandomPerceptron = () => {
   const randomBound = () => 1 - (Math.random() * 2)
   const weights = [ randomBound(), randomBound() ];
   const bias = 0;
@@ -118,7 +122,7 @@ const train = (parameters: { steps: number, batchSize: number }) => (data: Data)
 };
 
 module.exports = {
-  makePerceptron,
-  generatePerceptronModel,
+  runPerceptron,
+  generateRandomPerceptron,
   train,
 };
