@@ -47,7 +47,7 @@ describe("runPerceptron", function() {
 });
 
 describe("learning nand", function() {
-  this.timeout(10000);
+  this.timeout(20000);
   describe("train - Stochastic Gradient descent with batch size of 1", function() {
     it("works", function() {
       const perceptron = train({
