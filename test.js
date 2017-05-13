@@ -3,8 +3,8 @@ const {
   runPerceptron,
   generateRandomPerceptron,
   train,
-} = require('./index.js');
-const { expect } = require('chai');
+} = require("./index.js");
+const { expect } = require("chai");
 
 const idealNand = (input: Array<number>) => {
   const perceptron = { weights: [-2, -2], bias: 3 };
@@ -25,18 +25,19 @@ const testNand = ({ margin, perceptron }) => {
   }
 };
 
-const makeData = (length: number) => Array(length).fill('').map((_, i) => {
-  const randomBound = () => 1 - (Math.random() * 2)
-  const randomInput = [ randomBound(), randomBound() ];
-  return {
-    input: randomInput,
-    expectedOutput: idealNand(randomInput),
-  }
-});
+const makeData = (length: number) =>
+  Array(length).fill("").map((_, i) => {
+    const randomBound = () => 1 - Math.random() * 2;
+    const randomInput = [randomBound(), randomBound()];
+    return {
+      input: randomInput,
+      expectedOutput: idealNand(randomInput),
+    };
+  });
 
-describe("runPerceptron", function () {
-  describe("nand", function () {
-    it("works", function () {
+describe("runPerceptron", function() {
+  describe("nand", function() {
+    it("works", function() {
       testNand({
         margin: 1e-43,
         perceptron: { weights: [-200, -200], bias: 300 },
@@ -45,10 +46,10 @@ describe("runPerceptron", function () {
   });
 });
 
-describe("learning nand", function () {
+describe("learning nand", function() {
   this.timeout(10000);
-  describe("train - Stochastic Gradient descent with batch size of 1", function () {
-    it("works", function () {
+  describe("train - Stochastic Gradient descent with batch size of 1", function() {
+    it("works", function() {
       const perceptron = train({
         steps: 1000000,
         batchSize: 5,

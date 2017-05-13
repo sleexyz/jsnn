@@ -2,17 +2,23 @@
 
 type Model = {
   weights: Array<number>,
-  bias: number
+  bias: number,
 };
 
-const setW0 = (w0, model): Model => ({ weights: [ w0, model.weights[1] ], bias: model.bias });
-const setW1 = (w1, model): Model => ({ weights: [ model.weights[0], w1 ], bias: model.bias });
+const setW0 = (w0, model): Model => ({
+  weights: [w0, model.weights[1]],
+  bias: model.bias,
+});
+const setW1 = (w1, model): Model => ({
+  weights: [model.weights[0], w1],
+  bias: model.bias,
+});
 const setB = (b, model): Model => ({ weights: model.weights, bias: b });
 
-type Data = Array<{ input: Array<number>, expectedOutput: number}>;
+type Data = Array<{ input: Array<number>, expectedOutput: number }>;
 
-const sigmoid = (x) => 1 / (1 + Math.exp(-1 * x));
-const sigmoidPrime = (x) => {
+const sigmoid = (x: number) => 1 / (1 + Math.exp(-1 * x));
+const sigmoidPrime = (x: number) => {
   const s = sigmoid(x);
   return s * (1 - s);
 };
@@ -35,27 +41,25 @@ const dotProduct = (x: Array<number>, y: Array<number>) => {
   return acc;
 };
 
-const makePerceptron = ({ weights, bias }: Model) => (input: Array<number>): number => {
+const makePerceptron = ({ weights, bias }: Model) => (
+  input: Array<number>,
+): number => {
   return sigmoid(dotProduct(weights, input) + bias);
 };
 
-const runPerceptron = ({ weights, bias }: Model, input: Array<number>):number => {
+const runPerceptron = (
+  { weights, bias }: Model,
+  input: Array<number>,
+): number => {
   return sigmoid(dotProduct(weights, input) + bias);
 };
 
 const generateRandomPerceptron = () => {
-  const randomBound = () => 1 - (Math.random() * 2)
-  const weights = [ randomBound(), randomBound() ];
+  const randomBound = () => 1 - Math.random() * 2;
+  const weights = [randomBound(), randomBound()];
   const bias = 0;
   return { weights, bias };
 };
-
-const numericalDerivative = (f: number => number) => (x0: number): number => {
-  const delta = 0.0001;
-  const nd = (f(x0 + delta) - f(x0)) / delta
-  return nd;
-};
-
 
 const sampleRandomly = <A>(n: number, array: Array<A>): Array<A> => {
   const ret = [];
@@ -83,7 +87,7 @@ const getGradientOfCost = (data: Data) => (model: Model) => {
   let dc_dw0 = 0;
   let dc_dw1 = 0;
   let dc_db = 0;
-  for (let i = 0; i < data.length; i +=1) {
+  for (let i = 0; i < data.length; i += 1) {
     const { input, expectedOutput } = data[i];
     const { dp_dw0, dp_dw1, dp_db } = gradPerceptron(model, input);
     const diff = perceptron(input) - expectedOutput;
@@ -102,18 +106,20 @@ const step = (data: Data) => (model: Model): Model => {
   const learningRate = 1;
   const nextModel = {
     weights: [
-      model.weights[0] - (dc_dw0 * learningRate),
-      model.weights[1] - (dc_dw1 * learningRate),
+      model.weights[0] - dc_dw0 * learningRate,
+      model.weights[1] - dc_dw1 * learningRate,
     ],
-    bias: model.bias - (dc_db * learningRate),
+    bias: model.bias - dc_db * learningRate,
   };
   return nextModel;
 };
 
-const train = (parameters: { steps: number, batchSize: number }) => (data: Data) => (model: Model): Model=> {
+const train = (parameters: { steps: number, batchSize: number }) => (
+  data: Data,
+) => (model: Model): Model => {
   const { steps, batchSize } = parameters;
   let m = model;
-  for (let i = 0; i < steps; i += 1 ) {
+  for (let i = 0; i < steps; i += 1) {
     const sample = sampleRandomly(batchSize, data);
     const nextModel = step(sample)(m);
     m = nextModel;
