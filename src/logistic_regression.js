@@ -1,17 +1,5 @@
 // @flow
-
-type Continuous<I, O, DO> = {
-  run: (I, ...*) => O,
-  derivative: (I, ...*) => DO,
-};
-
-type Model<M, I, O, DO> = {
-  add: (M, M) => M,
-  scale: (number, M) => M,
-  initialize: void => M,
-  run: (M, I) => O,
-  derivative: (M, I) => DO,
-};
+import { Model } from "./core";
 
 // TODO: assert Model is a subtype of Continuous
 
@@ -20,7 +8,7 @@ type SimplePerceptron = {
   bias: number,
 };
 
-const Perceptron: Model<
+export const Perceptron: Model<
   SimplePerceptron,
   Array<number>,
   number,
@@ -132,7 +120,7 @@ const halfMeanSquaredErrorGradient = (
 //
 // We multiply the jacobian of the perceptron outputs wrt. the model params
 // with the gradient of the loss wrt. the perceptron outputs.
-const getGradientOfCost = (
+export const getGradientOfCost = (
   input: Array<Array<number>>,
   actual: Array<number>,
   expected: Array<number>,
@@ -150,7 +138,7 @@ const getGradientOfCost = (
   return grad;
 };
 
-const getGradientOfCostNumerically = (
+export const getGradientOfCostNumerically = (
   input: Array<Array<number>>,
   actual: Array<number>,
   expected: Array<number>,
@@ -188,7 +176,7 @@ const step = (
 
 type Data = Array<{ input: Array<number>, expectedOutput: number }>;
 
-const train = (parameters: { steps: number, batchSize: number }) => (
+export const train = (parameters: { steps: number, batchSize: number }) => (
   data: Data,
 ) => (model: SimplePerceptron): SimplePerceptron => {
   const { steps, batchSize } = parameters;
@@ -201,11 +189,4 @@ const train = (parameters: { steps: number, batchSize: number }) => (
     m = nextModel;
   }
   return m;
-};
-
-module.exports = {
-  getGradientOfCost,
-  getGradientOfCostNumerically,
-  Perceptron,
-  train,
 };

@@ -1,11 +1,11 @@
 // @flow
-const {
+import {
   getGradientOfCost,
   getGradientOfCostNumerically,
   Perceptron,
   train,
-} = require("./index.js");
-const { expect } = require("chai");
+} from "./logistic_regression";
+import { expect } from "chai";
 
 const idealNand = (input: Array<number>) => {
   const perceptron = { weights: [-2, -2], bias: 3 };
