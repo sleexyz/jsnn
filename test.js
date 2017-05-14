@@ -1,16 +1,15 @@
 // @flow
 const {
-  runPerceptron,
-  generateRandomPerceptron,
   getGradientOfCost,
   getGradientOfCostNumerically,
+  Perceptron,
   train,
 } = require("./index.js");
 const { expect } = require("chai");
 
 const idealNand = (input: Array<number>) => {
   const perceptron = { weights: [-2, -2], bias: 3 };
-  return Math.round(runPerceptron(perceptron, input));
+  return Math.round(Perceptron.run(perceptron, input));
 };
 
 const testNand = ({ margin, perceptron }) => {
@@ -22,7 +21,7 @@ const testNand = ({ margin, perceptron }) => {
   ];
   for (let i = 0; i < testData.length; i += 1) {
     const { input, expectedOutput } = testData[i];
-    const output = runPerceptron(perceptron, input);
+    const output = Perceptron.run(perceptron, input);
     expect(output).to.be.closeTo(expectedOutput, margin);
   }
 };
@@ -37,7 +36,7 @@ const makeData = (length: number) =>
     };
   });
 
-describe("runPerceptron", function() {
+describe("Perceptron.run", function() {
   describe("nand", function() {
     it("works", function() {
       testNand({
@@ -51,13 +50,13 @@ describe("runPerceptron", function() {
 describe("getGradientOfCost", function() {
   it("matches the numerical derivative", function() {
     const data = makeData(100);
-    const model = generateRandomPerceptron();
+    const model = Perceptron.random();
     const handComputed = getGradientOfCost(data, model);
     const numerical = getGradientOfCostNumerically(data, model);
     const margin = 0.0001;
-    expect(handComputed.dc_dw0).to.be.closeTo(numerical.dc_dw0, margin);
-    expect(handComputed.dc_dw1).to.be.closeTo(numerical.dc_dw1, margin);
-    expect(handComputed.dc_db).to.be.closeTo(numerical.dc_db, margin);
+    expect(handComputed.weights[0]).to.be.closeTo(numerical.weights[0], margin);
+    expect(handComputed.weights[1]).to.be.closeTo(numerical.weights[1], margin);
+    expect(handComputed.bias).to.be.closeTo(numerical.bias, margin);
   });
 });
 
@@ -68,7 +67,7 @@ describe("learning nand", function() {
       const perceptron = train({
         steps: 1e5,
         batchSize: 2,
-      })(makeData(200000))(generateRandomPerceptron());
+      })(makeData(200000))(Perceptron.random());
       testNand({
         perceptron,
         margin: 1e-2,
