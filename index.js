@@ -5,19 +5,26 @@ type Model = {
   bias: number,
 };
 
-const setW0 = (w0, model): Model => ({
-  weights: [w0, model.weights[1]],
-  bias: model.bias,
-});
-const setW1 = (w1, model): Model => ({
-  weights: [model.weights[0], w1],
-  bias: model.bias,
-});
-const setB = (b, model): Model => ({ weights: model.weights, bias: b });
-
 type Data = Array<{ input: Array<number>, expectedOutput: number }>;
 
+const setWeight = (i: number, v: number) => (model: Model): Model => {
+  const newWeights = model.weights.slice();
+  newWeights[i] = v;
+  return {
+    weights: newWeights,
+    bias: model.bias,
+  };
+};
+
+const setBias = (v: number) => (model: Model): Model => {
+  return {
+    weights: model.weights,
+    bias: v,
+  };
+};
+
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-1 * x));
+
 const sigmoidPrime = (x: number) => {
   const s = sigmoid(x);
   return s * (1 - s);
@@ -89,7 +96,7 @@ const halfMeanSquaredErrorGradient = (
 };
 
 // half of mean squared error
-const getCost = (data: Data) => (model: Model): number => {
+const getCost = (data: Data, model: Model): number => {
   const actual = data.map(({ input }) => runPerceptron(model, input));
   const expected = data.map(({ expectedOutput }) => expectedOutput);
   return halfMeanSquaredError(expected, actual);
@@ -99,7 +106,7 @@ const getCost = (data: Data) => (model: Model): number => {
 //
 // We multiply the jacobian of the perceptron outputs wrt. the model params
 // with the gradient of the loss wrt. the perceptron outputs.
-const getGradientOfCost = (data: Data) => (model: Model) => {
+const getGradientOfCost = (data: Data, model: Model) => {
   const actual = data.map(({ input }) => runPerceptron(model, input));
   const expected = data.map(({ expectedOutput }) => expectedOutput);
   const dc_dy = halfMeanSquaredErrorGradient(expected, actual);
@@ -116,8 +123,21 @@ const getGradientOfCost = (data: Data) => (model: Model) => {
   return { dc_dw0, dc_dw1, dc_db };
 };
 
-const step = (data: Data) => (model: Model): Model => {
-  const { dc_dw0, dc_dw1, dc_db } = getGradientOfCost(data)(model);
+const getGradientOfCostNumerically = (data: Data, model: Model) => {
+  const cost = getCost(data, model);
+  const delta = 0.001
+  const dc_dw0 = (getCost(data, setWeight(0, model.weights[0] + delta)(model)) - cost)/delta;
+  const dc_dw1 = (getCost(data, setWeight(1, model.weights[1] + delta)(model)) - cost)/delta;
+  const dc_db = (getCost(data, setBias(model.bias + delta)(model)) - cost) / delta;
+  return {
+    dc_dw0,
+    dc_dw1,
+    dc_db,
+  };
+};
+
+const step = (data: Data, model: Model): Model => {
+  const { dc_dw0, dc_dw1, dc_db } = getGradientOfCost(data, model);
   const learningRate = 1;
   const nextModel = {
     weights: [
@@ -136,14 +156,17 @@ const train = (parameters: { steps: number, batchSize: number }) => (
   let m = model;
   for (let i = 0; i < steps; i += 1) {
     const sample = sampleRandomly(batchSize, data);
-    const nextModel = step(sample)(m);
+    const nextModel = step(sample, m);
     m = nextModel;
   }
   return m;
 };
 
+
 module.exports = {
   runPerceptron,
+  getGradientOfCost,
+  getGradientOfCostNumerically,
   generateRandomPerceptron,
   train,
 };

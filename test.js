@@ -2,6 +2,8 @@
 const {
   runPerceptron,
   generateRandomPerceptron,
+  getGradientOfCost,
+  getGradientOfCostNumerically,
   train,
 } = require("./index.js");
 const { expect } = require("chai");
@@ -45,6 +47,20 @@ describe("runPerceptron", function() {
     });
   });
 });
+
+describe("getGradientOfCost", function() {
+  it("matches the numerical derivative", function() {
+    const data = makeData(100);
+    const model = generateRandomPerceptron();
+    const handComputed = getGradientOfCost(data, model);
+    const numerical = getGradientOfCostNumerically(data, model)
+    const margin = 0.0001;
+    expect(handComputed.dc_dw0).to.be.closeTo(numerical.dc_dw0, margin);
+    expect(handComputed.dc_dw1).to.be.closeTo(numerical.dc_dw1, margin);
+    expect(handComputed.dc_db).to.be.closeTo(numerical.dc_db, margin);
+  });
+});
+
 
 describe("learning nand", function() {
   this.timeout(20000);
