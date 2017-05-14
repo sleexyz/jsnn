@@ -182,13 +182,10 @@ const getGradientOfCostNumerically = (
 const step = (data: Data, model: SimplePerceptron): SimplePerceptron => {
   const grad = getGradientOfCost(data, model);
   const learningRate = 1;
-  const nextModel = {
-    weights: [
-      model.weights[0] - grad.weights[0] * learningRate,
-      model.weights[1] - grad.weights[1] * learningRate,
-    ],
-    bias: model.bias - grad.bias * learningRate,
-  };
+  const nextModel = Perceptron.add(
+    model,
+    Perceptron.scale(-1 * learningRate, grad),
+  );
   return nextModel;
 };
 
