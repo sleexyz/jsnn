@@ -50,9 +50,12 @@ describe("Perceptron.run", function() {
 describe("getGradientOfCost", function() {
   it("matches the numerical derivative", function() {
     const data = makeData(100);
-    const model = Perceptron.random();
-    const handComputed = getGradientOfCost(data, model);
-    const numerical = getGradientOfCostNumerically(data, model);
+    const model = Perceptron.initialize();
+    const input = data.map(({ input }) => input);
+    const expected = data.map(({ expectedOutput }) => expectedOutput);
+    const actual = input.map((i) => Perceptron.run(model, i));
+    const handComputed = getGradientOfCost(input, actual, expected, model);
+    const numerical = getGradientOfCostNumerically(input, actual, expected, model);
     const margin = 0.0001;
     expect(handComputed.weights[0]).to.be.closeTo(numerical.weights[0], margin);
     expect(handComputed.weights[1]).to.be.closeTo(numerical.weights[1], margin);
@@ -67,7 +70,7 @@ describe("learning nand", function() {
       const perceptron = train({
         steps: 1e5,
         batchSize: 2,
-      })(makeData(200000))(Perceptron.random());
+      })(makeData(200000))(Perceptron.initialize());
       testNand({
         perceptron,
         margin: 1e-2,

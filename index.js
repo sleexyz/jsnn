@@ -8,10 +8,12 @@ type Continuous<I, O, DO> = {
 type Model<M, I, O, DO> = {
   add: (M, M) => M,
   scale: (number, M) => M,
-  random: void => M,
+  initialize: void => M,
   run: (M, I) => O,
   derivative: (M, I) => DO,
-} & Continuous<M, O, DO>;
+};
+
+// TODO: assert Model is a subtype of Continuous
 
 type SimplePerceptron = {
   weights: Array<number>,
@@ -52,7 +54,7 @@ const Perceptron: Model<
       bias: foo,
     };
   },
-  random: () => {
+  initialize: () => {
     const randomBound = () => 1 - Math.random() * 2;
     const weights = [randomBound(), randomBound()];
     const bias = 0;
@@ -60,7 +62,6 @@ const Perceptron: Model<
   },
 };
 
-type Data = Array<{ input: Array<number>, expectedOutput: number }>;
 
 const setWeight = (i: number, v: number) => (
   model: SimplePerceptron,
@@ -128,59 +129,50 @@ const halfMeanSquaredErrorGradient = (
   return grad;
 };
 
-// half of mean squared error
-const getCost = (data: Data, model: SimplePerceptron): number => {
-  const actual = data.map(({ input }) => Perceptron.run(model, input));
-  const expected = data.map(({ expectedOutput }) => expectedOutput);
-  return halfMeanSquaredError(expected, actual);
-};
 
 // Gradient of cost wrt. model params
 //
 // We multiply the jacobian of the perceptron outputs wrt. the model params
 // with the gradient of the loss wrt. the perceptron outputs.
 const getGradientOfCost = (
-  data: Data,
+  input: Array<Array<number>>,
+  actual: Array<number>,
+  expected: Array<number>,
   model: SimplePerceptron,
 ): SimplePerceptron => {
-  const actual = data.map(({ input }) => Perceptron.run(model, input));
-  const expected = data.map(({ expectedOutput }) => expectedOutput);
   const dc_dy = halfMeanSquaredErrorGradient(expected, actual);
-  const dp_dtheta = data.map(({ input }) =>
-    Perceptron.derivative(model, input),
-  );
+  const dp_dtheta = input.map((i) => Perceptron.derivative(model, i));
   let grad = {
     weights: [0, 0],
     bias: 0,
   };
-  for (let i = 0; i < data.length; i += 1) {
+  for (let i = 0; i < input.length; i += 1) {
     grad = Perceptron.add(grad, Perceptron.scale(dc_dy[i], dp_dtheta[i]));
   }
   return grad;
 };
 
 const getGradientOfCostNumerically = (
-  data: Data,
+  input: Array<Array<number>>,
+  actual: Array<number>,
+  expected: Array<number>,
   model: SimplePerceptron,
 ): SimplePerceptron => {
-  const cost = getCost(data, model);
+  const getCost = (m) => halfMeanSquaredError(expected, input.map((i) => Perceptron.run(m, i)));
+  const cost = halfMeanSquaredError(expected, actual);
   const delta = 0.001;
-  const dc_dw0 =
-    (getCost(data, setWeight(0, model.weights[0] + delta)(model)) - cost) /
-    delta;
-  const dc_dw1 =
-    (getCost(data, setWeight(1, model.weights[1] + delta)(model)) - cost) /
-    delta;
-  const dc_db =
-    (getCost(data, setBias(model.bias + delta)(model)) - cost) / delta;
+  const dc_dw0 = (getCost(setWeight(0, model.weights[0] + delta)(model)) - cost) / delta;
+  const dc_dw1 = (getCost(setWeight(1, model.weights[1] + delta)(model)) - cost) / delta;
+  const dc_db = (getCost(setBias(model.bias + delta)(model)) - cost) / delta;
   return {
     weights: [dc_dw0, dc_dw1],
     bias: dc_db,
   };
 };
 
-const step = (data: Data, model: SimplePerceptron): SimplePerceptron => {
-  const grad = getGradientOfCost(data, model);
+const step = (input: Array<Array<number>>, expected: Array<number>, model: SimplePerceptron): SimplePerceptron => {
+  const output = input.map((i) => Perceptron.run(model, i));
+  const grad = getGradientOfCost(input, output, expected, model);
   const learningRate = 1;
   const nextModel = Perceptron.add(
     model,
@@ -189,6 +181,8 @@ const step = (data: Data, model: SimplePerceptron): SimplePerceptron => {
   return nextModel;
 };
 
+type Data = Array<{ input: Array<number>, expectedOutput: number }>;
+
 const train = (parameters: { steps: number, batchSize: number }) => (
   data: Data,
 ) => (model: SimplePerceptron): SimplePerceptron => {
@@ -196,7 +190,9 @@ const train = (parameters: { steps: number, batchSize: number }) => (
   let m = model;
   for (let i = 0; i < steps; i += 1) {
     const sample = sampleRandomly(batchSize, data);
-    const nextModel = step(sample, m);
+    const expected = sample.map(({ expectedOutput }) => expectedOutput);
+    const input = sample.map(({ input }) => input);
+    const nextModel = step(input, expected, m);
     m = nextModel;
   }
   return m;
