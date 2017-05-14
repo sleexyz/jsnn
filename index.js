@@ -62,7 +62,6 @@ const Perceptron: Model<
   },
 };
 
-
 const setWeight = (i: number, v: number) => (
   model: SimplePerceptron,
 ): SimplePerceptron => {
@@ -129,7 +128,6 @@ const halfMeanSquaredErrorGradient = (
   return grad;
 };
 
-
 // Gradient of cost wrt. model params
 //
 // We multiply the jacobian of the perceptron outputs wrt. the model params
@@ -141,7 +139,7 @@ const getGradientOfCost = (
   model: SimplePerceptron,
 ): SimplePerceptron => {
   const dc_dy = halfMeanSquaredErrorGradient(expected, actual);
-  const dp_dtheta = input.map((i) => Perceptron.derivative(model, i));
+  const dp_dtheta = input.map(i => Perceptron.derivative(model, i));
   let grad = {
     weights: [0, 0],
     bias: 0,
@@ -158,11 +156,14 @@ const getGradientOfCostNumerically = (
   expected: Array<number>,
   model: SimplePerceptron,
 ): SimplePerceptron => {
-  const getCost = (m) => halfMeanSquaredError(expected, input.map((i) => Perceptron.run(m, i)));
+  const getCost = m =>
+    halfMeanSquaredError(expected, input.map(i => Perceptron.run(m, i)));
   const cost = halfMeanSquaredError(expected, actual);
   const delta = 0.001;
-  const dc_dw0 = (getCost(setWeight(0, model.weights[0] + delta)(model)) - cost) / delta;
-  const dc_dw1 = (getCost(setWeight(1, model.weights[1] + delta)(model)) - cost) / delta;
+  const dc_dw0 =
+    (getCost(setWeight(0, model.weights[0] + delta)(model)) - cost) / delta;
+  const dc_dw1 =
+    (getCost(setWeight(1, model.weights[1] + delta)(model)) - cost) / delta;
   const dc_db = (getCost(setBias(model.bias + delta)(model)) - cost) / delta;
   return {
     weights: [dc_dw0, dc_dw1],
@@ -170,8 +171,12 @@ const getGradientOfCostNumerically = (
   };
 };
 
-const step = (input: Array<Array<number>>, expected: Array<number>, model: SimplePerceptron): SimplePerceptron => {
-  const output = input.map((i) => Perceptron.run(model, i));
+const step = (
+  input: Array<Array<number>>,
+  expected: Array<number>,
+  model: SimplePerceptron,
+): SimplePerceptron => {
+  const output = input.map(i => Perceptron.run(model, i));
   const grad = getGradientOfCost(input, output, expected, model);
   const learningRate = 1;
   const nextModel = Perceptron.add(

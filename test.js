@@ -53,9 +53,14 @@ describe("getGradientOfCost", function() {
     const model = Perceptron.initialize();
     const input = data.map(({ input }) => input);
     const expected = data.map(({ expectedOutput }) => expectedOutput);
-    const actual = input.map((i) => Perceptron.run(model, i));
+    const actual = input.map(i => Perceptron.run(model, i));
     const handComputed = getGradientOfCost(input, actual, expected, model);
-    const numerical = getGradientOfCostNumerically(input, actual, expected, model);
+    const numerical = getGradientOfCostNumerically(
+      input,
+      actual,
+      expected,
+      model,
+    );
     const margin = 0.0001;
     expect(handComputed.weights[0]).to.be.closeTo(numerical.weights[0], margin);
     expect(handComputed.weights[1]).to.be.closeTo(numerical.weights[1], margin);
