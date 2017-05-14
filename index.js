@@ -18,7 +18,12 @@ type SimplePerceptron = {
   bias: number,
 };
 
-const Perceptron: Model<SimplePerceptron, Array<number>, number, SimplePerceptron> = {
+const Perceptron: Model<
+  SimplePerceptron,
+  Array<number>,
+  number,
+  SimplePerceptron,
+> = {
   add: (a, b) => {
     const newWeights = [];
     for (let i = 0; i < a.weights.length; i += 1) {
@@ -27,26 +32,23 @@ const Perceptron: Model<SimplePerceptron, Array<number>, number, SimplePerceptro
     return {
       weights: newWeights,
       bias: a.bias + b.bias,
-    }
+    };
   },
   scale: (n, model) => {
     return {
-      weights: model.weights.map((x) => x * n),
+      weights: model.weights.map(x => x * n),
       bias: model.bias * n,
-    }
+    };
   },
   run: (model, input) => {
-    const { weights, bias } = model
+    const { weights, bias } = model;
     return sigmoid(dotProduct(weights, input) + bias);
   },
   derivative: (model, input) => {
     const { weights, bias } = model;
     const foo = sigmoidPrime(dotProduct(weights, input) + bias);
     return {
-      weights: [
-        foo * input[0],
-        foo * input[1],
-      ],
+      weights: [foo * input[0], foo * input[1]],
       bias: foo,
     };
   },
@@ -137,11 +139,16 @@ const getCost = (data: Data, model: SimplePerceptron): number => {
 //
 // We multiply the jacobian of the perceptron outputs wrt. the model params
 // with the gradient of the loss wrt. the perceptron outputs.
-const getGradientOfCost = (data: Data, model: SimplePerceptron): SimplePerceptron => {
+const getGradientOfCost = (
+  data: Data,
+  model: SimplePerceptron,
+): SimplePerceptron => {
   const actual = data.map(({ input }) => Perceptron.run(model, input));
   const expected = data.map(({ expectedOutput }) => expectedOutput);
   const dc_dy = halfMeanSquaredErrorGradient(expected, actual);
-  const dp_dtheta = data.map(({ input }) => Perceptron.derivative(model, input));
+  const dp_dtheta = data.map(({ input }) =>
+    Perceptron.derivative(model, input),
+  );
   let grad = {
     weights: [0, 0],
     bias: 0,
@@ -150,9 +157,12 @@ const getGradientOfCost = (data: Data, model: SimplePerceptron): SimplePerceptro
     grad = Perceptron.add(grad, Perceptron.scale(dc_dy[i], dp_dtheta[i]));
   }
   return grad;
-}
+};
 
-const getGradientOfCostNumerically = (data: Data, model: SimplePerceptron): SimplePerceptron => {
+const getGradientOfCostNumerically = (
+  data: Data,
+  model: SimplePerceptron,
+): SimplePerceptron => {
   const cost = getCost(data, model);
   const delta = 0.001;
   const dc_dw0 =
@@ -164,10 +174,7 @@ const getGradientOfCostNumerically = (data: Data, model: SimplePerceptron): Simp
   const dc_db =
     (getCost(data, setBias(model.bias + delta)(model)) - cost) / delta;
   return {
-    weights: [
-      dc_dw0,
-      dc_dw1,
-    ],
+    weights: [dc_dw0, dc_dw1],
     bias: dc_db,
   };
 };
