@@ -125,10 +125,15 @@ const getGradientOfCost = (data: Data, model: Model) => {
 
 const getGradientOfCostNumerically = (data: Data, model: Model) => {
   const cost = getCost(data, model);
-  const delta = 0.001
-  const dc_dw0 = (getCost(data, setWeight(0, model.weights[0] + delta)(model)) - cost)/delta;
-  const dc_dw1 = (getCost(data, setWeight(1, model.weights[1] + delta)(model)) - cost)/delta;
-  const dc_db = (getCost(data, setBias(model.bias + delta)(model)) - cost) / delta;
+  const delta = 0.001;
+  const dc_dw0 =
+    (getCost(data, setWeight(0, model.weights[0] + delta)(model)) - cost) /
+    delta;
+  const dc_dw1 =
+    (getCost(data, setWeight(1, model.weights[1] + delta)(model)) - cost) /
+    delta;
+  const dc_db =
+    (getCost(data, setBias(model.bias + delta)(model)) - cost) / delta;
   return {
     dc_dw0,
     dc_dw1,
@@ -161,7 +166,6 @@ const train = (parameters: { steps: number, batchSize: number }) => (
   }
   return m;
 };
-
 
 module.exports = {
   runPerceptron,
