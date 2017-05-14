@@ -66,12 +66,12 @@ describe("learning nand", function() {
   describe("train - Stochastic Gradient descent with batch size of 1", function() {
     it("works", function() {
       const perceptron = train({
-        steps: 1000000,
-        batchSize: 5,
+        steps: 1e5,
+        batchSize: 2,
       })(makeData(200000))(generateRandomPerceptron());
       testNand({
         perceptron,
-        margin: 1e-5,
+        margin: 1e-2,
       });
     });
   });
