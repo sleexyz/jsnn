@@ -64,7 +64,10 @@ const sampleRandomly = <A>(n: number, array: Array<A>): Array<A> => {
   return ret;
 };
 
-const halfMeanSquaredError = (expected: Array<number>, actual: Array<number>): number => {
+const halfMeanSquaredError = (
+  expected: Array<number>,
+  actual: Array<number>,
+): number => {
   let acc = 0;
   for (let i = 0; i < expected.length; i += 1) {
     acc += Math.pow(actual[i] - expected[i], 2);
@@ -73,7 +76,10 @@ const halfMeanSquaredError = (expected: Array<number>, actual: Array<number>): n
 };
 
 // gradient of half MSE wrt. outputs
-const halfMeanSquaredErrorGradient = (expected: Array<number>, actual: Array<number>): Array<number> => {
+const halfMeanSquaredErrorGradient = (
+  expected: Array<number>,
+  actual: Array<number>,
+): Array<number> => {
   let grad = [];
   const n = expected.length;
   for (let i = 0; i < n; i += 1) {
